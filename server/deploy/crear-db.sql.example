@@ -1,0 +1,11 @@
+-- Crea la base y el usuario dedicado de CreactingCinema.
+-- Aislado: no toca ninguna otra base de datos.
+-- Reemplaza 'TU_CONTRASENA_SEGURA' por una contraseña fuerte antes de ejecutar.
+CREATE DATABASE IF NOT EXISTS creating
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'creacting'@'localhost'
+  IDENTIFIED BY 'TU_CONTRASENA_SEGURA';
+
+GRANT ALL PRIVILEGES ON creating.* TO 'creacting'@'localhost';
+FLUSH PRIVILEGES;

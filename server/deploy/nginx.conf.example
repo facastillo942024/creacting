@@ -1,0 +1,59 @@
+# =====================================================================
+#  Nginx para CreactingCinema
+#  Sirve el frontend (build estatico de React) y hace proxy a la API Node.
+#
+#  Copia este archivo a:  /etc/nginx/sites-available/creacting
+#  Luego:                 ln -s /etc/nginx/sites-available/creacting /etc/nginx/sites-enabled/
+#                         nginx -t && systemctl reload nginx
+#
+#  Reemplaza:
+#    - tudominio.com           -> tu dominio real
+#    - /var/www/creacting      -> ruta donde subes el build del frontend
+#    - 5000                    -> el PORT del .env del backend
+#
+#  El HTTPS lo agrega Certbot automaticamente (ver GUIA-DESPLIEGUE.md).
+# =====================================================================
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name tudominio.com www.tudominio.com;
+
+    # Tamano maximo de subida (debe ser >= MAX_UPLOAD_MB del backend).
+    client_max_body_size 12M;
+
+    # ---- Frontend: build estatico de React ----
+    root /var/www/creacting;
+    index index.html;
+
+    # ---- API: proxy a Node (Express escuchando en localhost:5000) ----
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    # ---- Fotos subidas (servidas por Node bajo /uploads) ----
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        # Cache de imagenes en el navegador
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    # ---- SPA: cualquier otra ruta devuelve index.html (React Router) ----
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache de assets con hash (js/css con nombre unico por build)
+    location /static/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}

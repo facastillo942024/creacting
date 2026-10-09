@@ -1,70 +1,163 @@
-# Getting Started with Create React App
+# CreactingCinema 🎬
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Plataforma web de **casting de actores y talento**. Los actores crean su perfil con todas sus características físicas y habilidades y suben fotos; los directores y productores buscan y filtran talento por cualquier combinación de atributos.
 
-## Available Scripts
+> App React (frontend) + API Node/Express (backend) + MySQL/MariaDB.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Capacidades
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Actores**: registro, perfil con datos físicos (género, estatura, peso, colores de cabello/ojos/piel, mano dominante...) y un catálogo flexible de características (idiomas, deportes, instrumentos, condiciones como sordo/mudo/discapacidad, etc.), más una galería de fotos.
+- **Directores / Productores**: búsqueda avanzada combinando filtros fijos y del catálogo, resultados paginados, y vista de perfil con galería navegable (lightbox).
+- **Roles**: `actor`, `director`, `admin`, con rutas protegidas y control de acceso por rol.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Arquitectura
 
-### `npm test`
+```
+┌─────────────┐      HTTP/JSON       ┌──────────────────┐      SQL       ┌──────────────┐
+│  Frontend   │ ───────────────────> │   API Express    │ ─────────────> │   MySQL /    │
+│  React SPA  │ <─────────────────── │   (Node.js)      │ <───────────── │   MariaDB    │
+└─────────────┘                      └──────────────────┘                └──────────────┘
+                                       │  fotos en disco (sharp -> webp)
+                                       └──> /uploads
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Autenticación**: JWT (token en `localStorage`) + bcrypt para contraseñas.
+- **Fotos**: se guardan en disco comprimidas a WebP con `sharp`; en la BBDD solo la ruta.
+- **Modelo de datos híbrido**: columnas fijas para lo estable + catálogo EAV flexible para rasgos que crecen sin tocar el esquema.
 
-### `npm run build`
+## Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Capa | Tecnología |
+|------|------------|
+| Frontend | React 18, React Router 6, React-Bootstrap + Bootstrap 5, MUI (solo iconos) |
+| Backend | Node.js, Express, mysql2, JWT, bcryptjs, Multer, Sharp |
+| Base de datos | MySQL 8 / MariaDB (utf8mb4) |
+| Despliegue | PM2 (proceso), opcionalmente Nginx |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Estructura del repositorio
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+creacting/
+├── src/                      Frontend React
+│   ├── api/client.js         Cliente HTTP (token, errores)
+│   ├── auth/                 AuthProvider (JWT) + useAuth
+│   ├── routes/               AppRoute + ProtectedRoute (por rol)
+│   ├── components/           NavBar, CampoCaracteristica, GaleriaFotos
+│   └── pages/                auth/, actor/, director/
+├── public/                   Estáticos del frontend
+├── server/                   Backend Node/Express
+│   ├── src/                  app, config, db, controllers, routes, services, middleware
+│   ├── db/                   schema.sql + seed.sql
+│   ├── scripts/              run-sql, seed-usuarios-demo, e2e-test
+│   └── deploy/               Guías y plantillas de despliegue
+├── deploy-update.sh          Actualiza el despliegue (build + subida + restart)
+└── README.md
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Puesta en marcha local
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Necesitas Node.js LTS y un MySQL/MariaDB (p. ej. XAMPP).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Backend
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+cd server
+cp .env.example .env       # edita credenciales de BBDD y JWT_SECRET
+npm install
+npm run db:setup           # crea tablas + catálogo de características
+npm start                  # API en http://localhost:5000
+```
 
-## Learn More
+### 2. Frontend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+# en la raíz del proyecto
+cp .env.example .env        # REACT_APP_API_URL=http://localhost:5000
+npm install
+npm start                   # http://localhost:3000
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 3. Usuarios de prueba (opcional)
 
-### Code Splitting
+```bash
+cd server
+node scripts/seed-usuarios-demo.js
+```
+Crea `actor@demo.com`, `director@demo.com`, `admin@demo.com` — contraseña `demo1234`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Variables de entorno
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**Frontend** (`.env` en la raíz):
 
-### Making a Progressive Web App
+| Variable | Descripción |
+|----------|-------------|
+| `REACT_APP_API_URL` | URL base de la API (sin slash final) |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+**Backend** (`server/.env`, ver `server/.env.example`):
 
-### Advanced Configuration
+| Variable | Descripción |
+|----------|-------------|
+| `PORT` | Puerto de la API |
+| `CORS_ORIGIN` | Origen(es) permitido(s), separados por coma |
+| `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME` | Conexión MySQL |
+| `JWT_SECRET` | Cadena larga y aleatoria (`openssl rand -hex 32`) |
+| `JWT_EXPIRES_IN` | Expiración del token (ej. `7d`) |
+| `UPLOAD_DIR` | Carpeta de fotos |
+| `IMAGE_MAX_WIDTH` / `IMAGE_QUALITY` / `MAX_UPLOAD_MB` | Ajustes de imagen |
+| `FRONTEND_DIR` | (Opcional) carpeta del build para que Node sirva el frontend |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+> **Nunca** se suben archivos `.env` al repositorio. Usa los `.env.example` como plantilla.
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## API (resumen)
 
-### `npm run build` fails to minify
+| Método | Ruta | Acceso | Descripción |
+|--------|------|--------|-------------|
+| POST | `/api/auth/register` | público | Registra actor o director |
+| POST | `/api/auth/login` | público | Devuelve `{ token, usuario }` |
+| GET | `/api/auth/me` | token | Usuario autenticado |
+| GET | `/api/catalogo/caracteristicas` | público | Catálogo (para formularios/filtros) |
+| GET/PUT | `/api/actores/me` | actor | Mi perfil |
+| PUT | `/api/actores/me/caracteristicas` | actor | Guardar características |
+| POST/DELETE | `/api/actores/me/fotos[/:id]` | actor | Subir / borrar fotos |
+| GET | `/api/actores/:id` | director/admin | Ver perfil completo |
+| POST | `/api/busqueda/actores` | director/admin | Búsqueda con filtros |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Documentación detallada y colección Postman en [`server/deploy/`](server/deploy) y [`server/README.md`](server/README.md).
+
+---
+
+## Despliegue
+
+Guía completa paso a paso: [`server/deploy/GUIA-DESPLIEGUE.md`](server/deploy/GUIA-DESPLIEGUE.md).
+
+Para **actualizar** un despliegue existente (build + subida + restart) desde tu PC con Git Bash/WSL:
+
+```bash
+./deploy-update.sh            # backend + frontend
+./deploy-update.sh --frontend # solo frontend
+./deploy-update.sh --backend  # solo backend
+```
+
+Ajusta las variables de la cabecera del script (servidor, URL pública, rutas) según tu entorno.
+
+---
+
+## Pruebas
+
+```bash
+cd server
+node scripts/e2e-test.js      # recorre registro, perfil, foto, búsqueda (requiere API corriendo)
+```
+
+## Notas
+
+- `multer` está en 1.x (deprecado); se recomienda migrar a 2.x antes de abrir al público.
+- Para una URL sin puerto y HTTPS se necesita un dominio apuntando al servidor + Nginx/Certbot.

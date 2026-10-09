@@ -1,0 +1,170 @@
+{
+  "info": {
+    "name": "CreactingCinema API",
+    "description": "Coleccion para probar el backend de CreactingCinema. El login guarda el token automaticamente en la variable {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "actorId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" }
+    },
+    {
+      "name": "Auth - Login (actor demo)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var j = pm.response.json();",
+              "if (j.token) { pm.collectionVariables.set('token', j.token); console.log('token guardado'); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"actor@demo.com\",\n  \"password\": \"demo1234\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Login (director demo)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var j = pm.response.json();",
+              "if (j.token) { pm.collectionVariables.set('token', j.token); console.log('token director guardado'); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"director@demo.com\",\n  \"password\": \"demo1234\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Register (nuevo actor)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nuevo@demo.com\",\n  \"password\": \"secreto123\",\n  \"nombre\": \"Nuevo Actor\",\n  \"rol\": \"actor\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Me",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/auth/me"
+      }
+    },
+    {
+      "name": "Catalogo - Caracteristicas (para formularios)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/catalogo/caracteristicas" }
+    },
+    {
+      "name": "Catalogo - Solo buscables (para filtros)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/catalogo/caracteristicas?buscables=1" }
+    },
+    {
+      "name": "Actor - Mi perfil (requiere login actor)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/actores/me"
+      }
+    },
+    {
+      "name": "Actor - Actualizar perfil",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/actores/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre_artistico\": \"Ana A.\",\n  \"genero\": \"femenino\",\n  \"pais\": \"Colombia\",\n  \"ciudad\": \"Medellin\",\n  \"estatura_cm\": 168,\n  \"peso_kg\": 60,\n  \"color_ojos\": \"verde\",\n  \"color_cabello\": \"castano\",\n  \"color_piel\": \"trigueña\",\n  \"mano_dominante\": \"zurdo\",\n  \"biografia\": \"Actriz de teatro y cine.\",\n  \"disponible\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "Actor - Guardar caracteristicas",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/actores/me/caracteristicas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"caracteristicas\": [\n    { \"clave\": \"idiomas\", \"opciones\": [\"Español\", \"Inglés\"] },\n    { \"clave\": \"deportes\", \"opciones\": [\"Natación\"] },\n    { \"clave\": \"sordo\", \"valor\": false },\n    { \"clave\": \"talla_calzado\", \"valor\": 37 }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Actor - Subir foto (form-data campo 'foto')",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/actores/me/fotos",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "foto", "type": "file", "src": [] }
+          ]
+        },
+        "description": "En Postman: pestaña Body > form-data > key 'foto' tipo File > selecciona una imagen JPG/PNG."
+      }
+    },
+    {
+      "name": "Director - Buscar actores (filtros)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/busqueda/actores",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estatura_min\": 150,\n  \"estatura_max\": 190,\n  \"genero\": \"femenino\",\n  \"caracteristicas\": [\n    { \"clave\": \"idiomas\", \"opciones\": [\"Inglés\"] }\n  ],\n  \"page\": 1,\n  \"pageSize\": 20\n}"
+        },
+        "description": "Requiere token de DIRECTOR (ejecuta antes 'Login (director demo)')."
+      }
+    },
+    {
+      "name": "Director - Ver perfil de actor por id",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/actores/{{actorId}}",
+        "description": "Pon el id en la variable actorId (lo ves en los resultados de la busqueda). Requiere token de director/admin."
+      }
+    }
+  ]
+}

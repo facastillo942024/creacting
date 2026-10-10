@@ -83,6 +83,9 @@ export const api = {
   verActor: (id) => request(`/api/actores/${id}`, { auth: true }),
   buscarActores: (filtros) =>
     request("/api/busqueda/actores", { method: "POST", body: filtros, auth: true }),
+
+  // Dashboard
+  estadisticas: () => request("/api/estadisticas", { auth: true }),
 };
 
 export { API_URL };

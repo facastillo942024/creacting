@@ -5,15 +5,15 @@ import Registro from "../pages/auth/Registro";
 import PerfilActor from "../pages/actor/PerfilActor";
 import BuscarActores from "../pages/director/BuscarActores";
 import VerActor from "../pages/director/VerActor";
+import Dashboard from "../pages/dashboard/Dashboard";
 import NavBar from "../components/NavBar";
 import ProtectedRoute from "./ProtectedRoute";
 import useAuth from "../auth/useAuth";
 
-// Redirige la raiz segun estado/rol.
+// Redirige la raiz: sin login -> /login; con login -> /dashboard.
 function Inicio() {
-  const { isAuth, rol } = useAuth();
-  if (!isAuth) return <Navigate to="/login" replace />;
-  return <Navigate to={rol === "director" ? "/buscar" : "/perfil"} replace />;
+  const { isAuth } = useAuth();
+  return <Navigate to={isAuth ? "/dashboard" : "/login"} replace />;
 }
 
 export default function AppRoute() {
@@ -25,6 +25,15 @@ export default function AppRoute() {
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/perfil"

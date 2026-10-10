@@ -20,6 +20,11 @@ export default function NavBar() {
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">
           <Nav className="me-auto">
+            {isAuth && (
+              <Nav.Link as={Link} to="/dashboard">
+                Panel
+              </Nav.Link>
+            )}
             {isAuth && rol === "actor" && (
               <Nav.Link as={Link} to="/perfil">
                 Mi perfil

@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const catalogoRoutes = require('./routes/catalogoRoutes');
 const actorRoutes = require('./routes/actorRoutes');
 const busquedaRoutes = require('./routes/busquedaRoutes');
+const estadisticasRoutes = require('./routes/estadisticasRoutes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/catalogo', catalogoRoutes);
 app.use('/api/actores', actorRoutes);
 app.use('/api/busqueda', busquedaRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
 
 // 404 para rutas de API no encontradas
 app.use('/api', (req, res) => {
